@@ -46,7 +46,7 @@ dotnet run --project src/Enoch.Cli -- finish --outcome success
 dotnet run --project src/Enoch.Cli -- read
 ```
 
-Publishing requires `Authorization: Bearer <ENOCH_TOKEN>`. Read endpoints are intentionally left to the deployment proxy's human-auth boundary. Finished runs reject every mutation.
+Publishing requires an Authorization: Bearer token. Read endpoints are intentionally left to the deployment proxy's human-auth boundary. Finished runs reject every mutation.
 
 ## Storage
 
