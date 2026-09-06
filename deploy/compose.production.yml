@@ -1,0 +1,24 @@
+# Deployment input for the existing reverse proxy. The proxy network name is
+# intentionally supplied by the operator; do not guess an estate network.
+# Build/publish this image in the approved registry before enabling this stack.
+services:
+  enoch:
+    image: ${ENOCH_IMAGE:?set ENOCH_IMAGE to an approved published image}
+    restart: unless-stopped
+    environment:
+      ENOCH_DATA: /data
+      ENOCH_URL: ${ENOCH_URL:-https://enoch.iyrin.men}
+      ENOCH_TOKEN: ${ENOCH_TOKEN:?set publisher token outside git}
+    volumes:
+      - enoch-data:/data/runs
+    expose:
+      - "8080"
+    networks:
+      proxy:
+        aliases: [enoch]
+networks:
+  proxy:
+    external: true
+    name: ${ENOCH_PROXY_NETWORK:?set the verified existing proxy network name}
+volumes:
+  enoch-data:
