@@ -52,4 +52,4 @@ Publishing requires an Authorization: Bearer token. Read endpoints are intention
 
 Each run is stored as a self-contained bundle containing `manifest.json`, immutable `request.json`, numbered plans, `events.jsonl`, optional `result.json`, evidence and artifact directories, and `checksums.sha256`. Active-run mutations are serialized per run and published through same-filesystem atomic renames. An index can therefore be rebuilt by enumerating run manifests.
 
-See [deployment.md](docs/deployment.md) for the production Compose input and the intentionally blocked estate rollout.
+See [deployment.md](docs/deployment.md) for the production Compose input and live estate deployment notes.

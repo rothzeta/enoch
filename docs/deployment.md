@@ -2,7 +2,7 @@
 
 `deploy/compose.production.yml` is a portable production example. It publishes no host port, persists the canonical `/data/runs` tree, requires an operator-supplied image reference and publisher token, and joins only an explicitly supplied proxy network.
 
-The live `enoch.iyrin.men` rollout is intentionally **not staged in Jachin yet**. As of 2026-09-06, the local Enoch repository has no remote because the `hermes-infra` machine user is not allowed to create a repository for `rothzeta`. Consequently there is no source location for Doco-CD, no built GHCR image, and no immutable image digest. No repository creation, push, image publication, secret creation, or deployment was attempted by this implementation run.
+The live rollout is deployed from `rothzeta/enoch` and registered in the private `rothzeta/jachin` source of truth. Doco-CD deploys the digest-pinned image to dock-core at `https://enoch.iyrin.men`. The publisher token is stored in OpenBao at `kv/doco/enoch:publisher_token` and injected at reconciliation time; its value is not stored in either repository.
 
 ## Verified estate shape
 
