@@ -25,6 +25,47 @@ public sealed class EnochClientTests
         await Assert.ThrowsAsync<ArgumentException>(() => client.PublishProgressAsync("../escape", "nope"));
     }
 
+    [Theory]
+    [InlineData("plan")]
+    [InlineData("result")]
+    [InlineData("finish")]
+    public async Task Mutations_read_stable_publication_response(string mutation)
+    {
+        var handler = new RecordingHandler("{\"runId\":\"run-1\",\"sequence\":7,\"state\":\"finished\"}");
+        using var client = new EnochClient(new EnochClientOptions { BaseAddress = new Uri("https://enoch.test/"), Handler = handler });
+
+        var response = mutation switch
+        {
+            "plan" => await client.PublishPlanAsync("run-1", "plan"),
+            "result" => await client.PublishResultAsync("run-1", "result"),
+            _ => await client.FinishRunAsync("run-1", "partial")
+        };
+
+        Assert.Equal("run-1", response.Id);
+        Assert.Equal(7, response.Sequence);
+        Assert.Equal("finished", response.State);
+    }
+
+    [Fact]
+    public async Task Evidence_and_artifact_ids_remain_compatible()
+    {
+        var evidenceHandler = new RecordingHandler("{\"id\":\"evidence-1\"}");
+        using var evidenceClient = new EnochClient(new EnochClientOptions { BaseAddress = new Uri("https://enoch.test/"), Handler = evidenceHandler });
+        Assert.Equal("evidence-1", (await evidenceClient.AddEvidenceAsync("run-1", "notes", "done")).Id);
+
+        var path = Path.GetTempFileName();
+        try
+        {
+            var artifactHandler = new RecordingHandler("{\"id\":\"artifact-1\"}");
+            using var artifactClient = new EnochClient(new EnochClientOptions { BaseAddress = new Uri("https://enoch.test/"), Handler = artifactHandler });
+            Assert.Equal("artifact-1", (await artifactClient.AddArtifactAsync("run-1", path)).Id);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private sealed class RecordingHandler(string body) : HttpMessageHandler
     {
         public HttpRequestMessage Request { get; private set; } = null!;

@@ -9,6 +9,7 @@ public sealed record EventRequest(string EventId, string Kind, object? Data = nu
 public sealed record ResultRequest(object Result);
 public sealed record FinishRequest(RunOutcome Outcome, string? Summary = null);
 public sealed record EvidenceRequest(string Name, string Content, string? MimeType = "text/plain");
+public sealed record PublicationResponse(string RunId, long Sequence, RunState State);
 public sealed record RunManifest(string Id, string Title, RunState State, RunOutcome? Outcome, long Sequence, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, DateTimeOffset? FinishedAt, string? Summary = null);
 public sealed record RunEvent(long Sequence, string EventId, string Kind, object? Data, DateTimeOffset OccurredAt);
 public sealed record ArtifactInfo(string Id, string Name, string MimeType, long Length, string Sha256, DateTimeOffset CreatedAt);

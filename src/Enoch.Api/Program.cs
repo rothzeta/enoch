@@ -47,3 +47,5 @@ pub.MapPost("/runs/{id}/resume", async (string id,IRunStore s)=>Results.Ok(await
 app.MapGet("/api/v1/runs/{id}/artifacts/{artifactId}", async (string id,string artifactId,IRunStore s)=>{var r=await s.GetAsync(id);var a=r.Artifacts.FirstOrDefault(x=>x.Id==artifactId)??throw new EnochException("not_found","Artifact was not found.",404);var p=Path.Combine(data,"runs",id,"artifacts",artifactId,"file");return Results.File(p,a.MimeType,a.Name);});
 app.MapFallbackToFile("index.html");
 app.Run();
+
+public partial class Program { }

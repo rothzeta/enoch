@@ -95,7 +95,8 @@ public sealed class EnochClient : IDisposable
         using var doc = await ReadAsync<JsonDocument>(response, ct);
         var root = doc.RootElement;
         var source = root.TryGetProperty("manifest", out var manifest) ? manifest : root;
-        string? id = source.TryGetProperty("id", out var idValue) ? idValue.GetString() : null;
+        string? id = source.TryGetProperty("id", out var idValue) ? idValue.GetString()
+            : root.TryGetProperty("runId", out var runIdValue) ? runIdValue.GetString() : null;
         string? state = source.TryGetProperty("state", out var stateValue) ? StringValue(stateValue) : null;
         long? sequence = source.TryGetProperty("sequence", out var seqValue) && seqValue.TryGetInt64(out var seq) ? seq : null;
         return new PublishResponse(id, sequence, state);
