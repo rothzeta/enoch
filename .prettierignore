@@ -1,0 +1,10 @@
+src/**/bin/
+tests/**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/coverage/
+.cache/
+.git/
+data/
+src/Enoch.Ui/package-lock.json

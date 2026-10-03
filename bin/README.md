@@ -1,0 +1,7 @@
+# Repository commands
+
+This directory contains tracked executable entry points. `enoch-tool` delegates to
+`scripts/run-tool.sh`; developers normally invoke it through the root `justfile`.
+
+Generated .NET output belongs in each project's ignored `bin/` directory. It must
+not be placed in this repository-root directory.

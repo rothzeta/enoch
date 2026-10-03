@@ -4,20 +4,22 @@ Enoch publishes durable, human-readable records of agent work. A run captures th
 
 V1 is one ASP.NET Core application serving a Vue 3 static UI and a versioned HTTP API. The canonical store is a filesystem bundle below `${ENOCH_DATA}/runs/<run-id>`; no database, broker, or cache is required.
 
+The documentation is an Obsidian vault rooted at [`docs/`](docs/README.md). Its [schema](docs/SCHEMA.md), [current state](docs/CURRENT.md), [problems](docs/PROBLEMS.md), and [task logs](docs/TASK_LOGS.md) distinguish decisions, planned work, implemented behavior, unresolved issues, and verification evidence. Only the orchestrator agent may clear problem entries.
+
 ## Build and test
 
-Requirements: .NET 8 SDK and Node.js 22.
+Requirements: `just`, the .NET 8 SDK selected by `global.json`, and Node.js 22.
 
 ```sh
-dotnet restore Enoch.sln
-dotnet build Enoch.sln --no-restore
-dotnet test Enoch.sln --no-build
-
-cd src/Enoch.Ui
-npm ci
-npm test
-npm run build
+just install
+just format
+just check
 ```
+
+Run `just` to list individual lint, type-check, build, and test recipes. Use
+`ENOCH_TOOLING=docker just install` and `ENOCH_TOOLING=docker just check` with
+Docker instead of local .NET and Node tools. See the [development rules](docs/exploitation/development.md)
+and [repository tooling decision](docs/adr/0004-repository-tooling.md).
 
 Run the API locally with a non-empty publisher token:
 
@@ -52,4 +54,4 @@ Publishing requires an Authorization: Bearer token. Read endpoints are intention
 
 Each run is stored as a self-contained bundle containing `manifest.json`, immutable `request.json`, numbered plans, `events.jsonl`, optional `result.json`, evidence and artifact directories, and `checksums.sha256`. Active-run mutations are serialized per run and published through same-filesystem atomic renames. An index can therefore be rebuilt by enumerating run manifests.
 
-See [deployment.md](docs/deployment.md) for the production Compose input and live estate deployment notes.
+See [deployment.md](docs/exploitation/deployment.md) for the production Compose input and live estate deployment notes.

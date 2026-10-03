@@ -21,21 +21,36 @@ public sealed class PublicationApiTests
         var started = await client.PostAsJsonAsync("/api/v1/publish/runs", new
         {
             title = "response regression",
-            request = new { prompt = "hello" },
+            request = new
+            {
+                prompt = "hello"
+            },
             runId = "response-regression"
         });
         Assert.Equal(HttpStatusCode.Created, started.StatusCode);
 
         await AssertPublicationResponse(
-            await client.PostAsJsonAsync("/api/v1/publish/runs/response-regression/plans", new { plan = (object?)null }),
+            await client.PostAsJsonAsync("/api/v1/publish/runs/response-regression/plans", new
+            {
+                plan = (object?)null
+            }),
             1,
             "running");
         await AssertPublicationResponse(
-            await client.PutAsJsonAsync("/api/v1/publish/runs/response-regression/result", new { result = new { answer = "ok" } }),
+            await client.PutAsJsonAsync("/api/v1/publish/runs/response-regression/result", new
+            {
+                result = new
+                {
+                    answer = "ok"
+                }
+            }),
             1,
             "running");
         await AssertPublicationResponse(
-            await client.PostAsJsonAsync("/api/v1/publish/runs/response-regression/finish", new { outcome = "partial" }),
+            await client.PostAsJsonAsync("/api/v1/publish/runs/response-regression/finish", new
+            {
+                outcome = "partial"
+            }),
             1,
             "finished");
     }

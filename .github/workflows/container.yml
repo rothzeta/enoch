@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - "v*.*.*"
+      - 'v*.*.*'
   pull_request:
 
 permissions:
@@ -13,7 +13,38 @@ permissions:
   packages: write
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/Enoch.Ui/package-lock.json
+
+      - name: Set up just
+        uses: extractions/setup-just@v3
+        with:
+          just-version: '1.40.0'
+
+      - name: Restore dependencies
+        run: just install
+
+      - name: Check formatting, lint, types, builds, and tests
+        run: just check
+
   build:
+    needs: check
     runs-on: ubuntu-latest
 
     steps:

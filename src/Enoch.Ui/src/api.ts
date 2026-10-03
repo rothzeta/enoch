@@ -1,6 +1,29 @@
-export type Run = { id: string; title?: string; state?: string; outcome?: string; createdAt?: string; updatedAt?: string; request?: unknown; result?: unknown; [key: string]: unknown }
-export type Artifact = { id: string; name: string; mimeType: string; length: number; sha256: string; createdAt: string }
-export type RunDetail = Run & { plans?: unknown[]; events?: unknown[]; evidence?: unknown[]; artifacts?: Artifact[] }
+export type Run = Readonly<{
+  id: string
+  title?: string
+  state?: string
+  outcome?: string
+  createdAt?: string
+  updatedAt?: string
+  request?: unknown
+  result?: unknown
+  [key: string]: unknown
+}>
+export type Artifact = Readonly<{
+  id: string
+  name: string
+  mimeType: string
+  length: number
+  sha256: string
+  createdAt: string
+}>
+export type RunDetail = Run &
+  Readonly<{
+    plans?: readonly unknown[]
+    events?: readonly unknown[]
+    evidence?: readonly unknown[]
+    artifacts?: readonly Artifact[]
+  }>
 
 export function artifactDownloadUrl(runId: string, artifactId: string): string {
   return `/api/v1/runs/${encodeURIComponent(runId)}/artifacts/${encodeURIComponent(artifactId)}`

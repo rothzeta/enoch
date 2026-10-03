@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.cs]
+indent_size = 4
+csharp_new_line_before_open_brace = all
+csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_statements = false
+csharp_style_namespace_declarations = file_scoped
+csharp_prefer_braces = true
+dotnet_style_readonly_field = true
+dotnet_diagnostic.IDE0011.severity = warning
+dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.IDE0055.severity = warning
+dotnet_diagnostic.IDE0161.severity = warning
+
+[tests/**/*.cs]
+# Sentence-style test names use underscores to separate words.
+dotnet_diagnostic.CA1707.severity = none
+# Keep literal fixture arrays next to assertions; allocation tuning adds no value here.
+dotnet_diagnostic.CA1861.severity = none
+
+[*.md]
+trim_trailing_whitespace = false

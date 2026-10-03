@@ -4,6 +4,7 @@ import { createApp, nextTick } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App.vue'
 import { artifactDownloadUrl } from './api'
+import type * as ApiModule from './api'
 
 const { artifact } = vi.hoisted(() => ({
   artifact: {
@@ -17,7 +18,7 @@ const { artifact } = vi.hoisted(() => ({
 }))
 
 vi.mock('./api', async (importOriginal) => {
-  const original = await importOriginal<typeof import('./api')>()
+  const original = await importOriginal<typeof ApiModule>()
   return {
     ...original,
     api: {

@@ -12,7 +12,9 @@ public sealed class CliSmokeTests
         var host = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
         var start = new ProcessStartInfo(host, $"\"{cli}\" --help")
         {
-            RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
         };
         using var process = Process.Start(start)!;
         var output = await process.StandardOutput.ReadToEndAsync();

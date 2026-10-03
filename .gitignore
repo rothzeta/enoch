@@ -1,4 +1,6 @@
 **/bin/
+!/bin/
+!/bin/**
 **/obj/
 **/node_modules/
 **/dist/
@@ -6,3 +8,5 @@
 .idea/
 .vscode/
 data/
+.cache/
+**/coverage/

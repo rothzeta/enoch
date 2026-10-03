@@ -1,7 +1,10 @@
 .git
 **/bin
+!bin
+!bin/**
 **/obj
 **/node_modules
 **/dist
 **/*.tsbuildinfo
 data
+.cache

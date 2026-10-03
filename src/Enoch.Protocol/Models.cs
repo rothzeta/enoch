@@ -1,7 +1,13 @@
 namespace Enoch.Protocol;
 
-public enum RunState { Queued, Running, Waiting, Finished }
-public enum RunOutcome { Success, Partial, Failed, Cancelled, Expired }
+public enum RunState
+{
+    Queued, Running, Waiting, Finished
+}
+public enum RunOutcome
+{
+    Success, Partial, Failed, Cancelled, Expired
+}
 
 public sealed record StartRunRequest(string Title, object Request, string? RunId = null);
 public sealed record PlanRequest(object Plan, string? EventId = null);

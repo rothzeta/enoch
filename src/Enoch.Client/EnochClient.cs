@@ -38,7 +38,9 @@ public sealed class EnochClient : IDisposable
         _ownsClient = true;
         _http.BaseAddress = options.BaseAddress;
         if (!string.IsNullOrWhiteSpace(options.Token))
+        {
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Token);
+        }
     }
 
     public async Task<StartRunResponse> StartRunAsync(string title, string request, CancellationToken ct = default)
@@ -50,10 +52,17 @@ public sealed class EnochClient : IDisposable
     }
 
     public Task<PublishResponse> PublishPlanAsync(string runId, string content, string format = "markdown", CancellationToken ct = default) =>
-        PublishAsync($"api/v1/publish/runs/{Id(runId)}/plans", new PlanRequest(new { content, format }), ct);
+        PublishAsync($"api/v1/publish/runs/{Id(runId)}/plans", new PlanRequest(new
+        {
+            content,
+            format
+        }), ct);
 
     public Task<PublishResponse> PublishProgressAsync(string runId, string message, string? eventId = null, string kind = "progress", CancellationToken ct = default) =>
-        PublishAsync($"api/v1/publish/runs/{Id(runId)}/events", new ProgressRequest(eventId ?? $"cli-{Guid.NewGuid():N}", kind, new { message }), ct);
+        PublishAsync($"api/v1/publish/runs/{Id(runId)}/events", new ProgressRequest(eventId ?? $"cli-{Guid.NewGuid():N}", kind, new
+        {
+            message
+        }), ct);
 
     public Task<PublishResponse> AddEvidenceAsync(string runId, string name, string content, string contentType = "text/plain", CancellationToken ct = default) =>
         PublishAsync($"api/v1/publish/runs/{Id(runId)}/evidence", new EvidenceRequest(name, content, contentType), ct);
@@ -72,7 +81,11 @@ public sealed class EnochClient : IDisposable
         PutAsync($"api/v1/publish/runs/{Id(runId)}/result", new ResultRequest(content), ct);
 
     public Task<PublishResponse> FinishRunAsync(string runId, string outcome, string? summary = null, CancellationToken ct = default) =>
-        PublishAsync($"api/v1/publish/runs/{Id(runId)}/finish", new { outcome = OutcomeName(outcome), summary }, ct);
+        PublishAsync($"api/v1/publish/runs/{Id(runId)}/finish", new
+        {
+            outcome = OutcomeName(outcome),
+            summary
+        }, ct);
 
     public async Task<JsonDocument> ReadRunAsync(string runId, CancellationToken ct = default)
     {
@@ -104,8 +117,15 @@ public sealed class EnochClient : IDisposable
     private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, object? body, CancellationToken ct)
     {
         using var request = new HttpRequestMessage(method, path);
-        if (body is HttpContent content) request.Content = content;
-        else if (body is not null) request.Content = JsonContent.Create(body, options: JsonOptions);
+        if (body is HttpContent content)
+        {
+            request.Content = content;
+        }
+        else if (body is not null)
+        {
+            request.Content = JsonContent.Create(body, options: JsonOptions);
+        }
+
         var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
         if (!response.IsSuccessStatusCode)
         {
@@ -122,18 +142,39 @@ public sealed class EnochClient : IDisposable
     }
     private static string Id(string value)
     {
-        if (string.IsNullOrWhiteSpace(value) || value.Any(c => c is '/' or '\\' or '?' or '#')) throw new ArgumentException("Invalid run id.", nameof(value));
+        if (string.IsNullOrWhiteSpace(value) || value.Any(c => c is '/' or '\\' or '?' or '#'))
+        {
+            throw new ArgumentException("Invalid run id.", nameof(value));
+        }
+
         return Uri.EscapeDataString(value);
     }
     private static string OutcomeName(string value) => value.ToLowerInvariant() switch
     {
-        "success" => "Success", "partial" => "Partial", "failed" => "Failed", "cancelled" => "Cancelled", "expired" => "Expired",
+        "success" => "Success",
+        "partial" => "Partial",
+        "failed" => "Failed",
+        "cancelled" => "Cancelled",
+        "expired" => "Expired",
         _ => throw new ArgumentException("Outcome must be success, partial, failed, cancelled, or expired.", nameof(value))
     };
     private static string StringValue(JsonElement value) => value.ValueKind == JsonValueKind.Number
-        ? value.GetInt32() switch { 0 => "Queued", 1 => "Running", 2 => "Waiting", 3 => "Finished", _ => value.GetRawText() }
+        ? value.GetInt32() switch
+        {
+            0 => "Queued",
+            1 => "Running",
+            2 => "Waiting",
+            3 => "Finished",
+            _ => value.GetRawText()
+        }
         : value.GetString() ?? value.GetRawText();
-    public void Dispose() { if (_ownsClient) _http.Dispose(); }
+    public void Dispose()
+    {
+        if (_ownsClient)
+        {
+            _http.Dispose();
+        }
+    }
 }
 
 public sealed class EnochApiException(HttpStatusCode statusCode, string detail) : Exception($"Enoch API returned {(int)statusCode} ({statusCode}): {detail}")
