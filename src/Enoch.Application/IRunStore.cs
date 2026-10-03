@@ -9,7 +9,9 @@ public interface IRunStore
     Task<PublicationResponse> PublishPlanAsync(string id, PlanRequest request, CancellationToken ct = default);
     Task<RunEvent> PublishEventAsync(string id, EventRequest request, CancellationToken ct = default);
     Task<EvidenceInfo> AddEvidenceAsync(string id, EvidenceRequest request, CancellationToken ct = default);
+    Task<EvidenceContent> ReadEvidenceAsync(string id, string evidenceId, CancellationToken ct = default);
     Task<ArtifactInfo> AddArtifactAsync(string id, string name, string mimeType, Stream content, CancellationToken ct = default);
+    Task<ArtifactContent> ReadArtifactAsync(string id, string artifactId, CancellationToken ct = default);
     Task<PublicationResponse> PublishResultAsync(string id, ResultRequest request, CancellationToken ct = default);
     Task<PublicationResponse> FinishAsync(string id, FinishRequest request, CancellationToken ct = default);
     Task<RunDocument> WaitAsync(string id, CancellationToken ct = default);

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using Enoch.Client;
 
 return await Cli.RunAsync(args);
@@ -42,7 +43,11 @@ internal static class Cli
                     Print(await client.AddArtifactAsync(RequiredRun(runId), artifactPath, Value(args, "--name"), Value(args, "--content-type")));
                     return 0;
                 case "result":
-                    Print(await client.PublishResultAsync(RequiredRun(runId), await ReadInput(args, "--file"), Value(args, "--outcome")));
+                    if (args.Contains("--outcome", StringComparer.Ordinal))
+                    {
+                        throw new ArgumentException("result does not accept --outcome. Use finish --outcome after publishing the result.");
+                    }
+                    Print(await client.PublishResultAsync(RequiredRun(runId), await ReadInput(args, "--file")));
                     return 0;
                 case "finish":
                     Print(await client.FinishRunAsync(RequiredRun(runId), Required(args, "--outcome"), Value(args, "--summary")));
@@ -59,7 +64,17 @@ internal static class Cli
                     return 2;
             }
         }
-        catch (Exception ex) when (ex is ArgumentException or EnochApiException or IOException)
+        catch (HttpRequestException ex)
+        {
+            Console.Error.WriteLine($"Unable to reach Enoch: {ex.Message}. Check ENOCH_URL and connectivity.");
+            return 1;
+        }
+        catch (OperationCanceledException)
+        {
+            Console.Error.WriteLine("The Enoch request timed out. Check ENOCH_URL and server availability, or increase ENOCH_TIMEOUT_SECONDS.");
+            return 1;
+        }
+        catch (Exception ex) when (ex is ArgumentException or EnochApiException or IOException or JsonException)
         {
             Console.Error.WriteLine(ex.Message);
             return 1;
@@ -69,12 +84,23 @@ internal static class Cli
     private static EnochClient Client()
     {
         var url = Environment.GetEnvironmentVariable("ENOCH_URL");
-        if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
         {
-            throw new ArgumentException("ENOCH_URL must be an absolute URL.");
+            throw new ArgumentException("ENOCH_URL must be an absolute HTTP or HTTPS URL.");
         }
 
-        return new EnochClient(new EnochClientOptions { BaseAddress = uri, Token = Environment.GetEnvironmentVariable("ENOCH_TOKEN") });
+        var timeout = TimeSpan.FromSeconds(100);
+        var configuredTimeout = Environment.GetEnvironmentVariable("ENOCH_TIMEOUT_SECONDS");
+        if (configuredTimeout is not null)
+        {
+            if (!double.TryParse(configuredTimeout, NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds) ||
+                !double.IsFinite(seconds) || seconds <= 0 || seconds > int.MaxValue / 1000d)
+            {
+                throw new ArgumentException("ENOCH_TIMEOUT_SECONDS must be a positive finite number of seconds.");
+            }
+            timeout = TimeSpan.FromSeconds(seconds);
+        }
+        return new EnochClient(new EnochClientOptions { BaseAddress = uri, Token = Environment.GetEnvironmentVariable("ENOCH_TOKEN"), RequestTimeout = timeout });
     }
     private static string RequiredRun(string? id) => !string.IsNullOrWhiteSpace(id) ? id : throw new ArgumentException("Set ENOCH_RUN_ID or pass --run.");
     private static string Required(string[] args, string option) => Value(args, option) ?? throw new ArgumentException($"Missing {option}.");
@@ -89,5 +115,5 @@ internal static class Cli
         return path == "-" ? await Console.In.ReadToEndAsync() : await File.ReadAllTextAsync(path);
     }
     private static void Print(object value) => Console.WriteLine(JsonSerializer.Serialize(value, JsonOptions));
-    private static void Help() => Console.WriteLine("Enoch CLI\n\nEnvironment: ENOCH_URL, ENOCH_TOKEN, ENOCH_RUN_ID\n\nCommands:\n  start --title TITLE --request FILE\n  plan --file FILE [--run ID]\n  progress --message TEXT [--event-id ID] [--run ID]\n  evidence --name NAME --file FILE [--run ID]\n  artifact --file FILE [--name NAME] [--run ID]\n  result --file FILE [--outcome OUTCOME] [--run ID]\n  finish --outcome success|partial|failed|cancelled|expired [--summary TEXT] [--run ID]\n  read [--run ID]");
+    private static void Help() => Console.WriteLine("Enoch CLI\n\nEnvironment: ENOCH_URL, ENOCH_TOKEN, ENOCH_RUN_ID, ENOCH_TIMEOUT_SECONDS (optional; default 100)\n\nCommands:\n  start --title TITLE --request FILE\n  plan --file FILE [--run ID]\n  progress --message TEXT [--event-id ID] [--run ID]\n  evidence --name NAME --file FILE [--run ID]\n  artifact --file FILE [--name NAME] [--run ID]\n  result --file FILE [--run ID]\n  finish --outcome success|partial|failed|cancelled|expired [--summary TEXT] [--run ID]\n  read [--run ID]");
 }

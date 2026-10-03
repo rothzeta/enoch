@@ -8,3 +8,10 @@ the repository root, and never contain credentials.
 `ENOCH_TOOLING=docker` to run them in the declared .NET 8 and Node.js 22 images.
 The Docker mode writes build output as the invoking user and keeps dependency
 caches under the ignored `.cache/tooling/` directory.
+
+`run-backup.mjs` implements verified quiesced backup/restore; `backup.test.mjs`
+retains integrity and rejected-input regressions. `run-operations-check.sh` and
+`check-operations.mjs` exercise an isolated Docker image and restored API fixture.
+`run-local-docker.sh` leaves a checked local instance running on a loopback port.
+Invoke these through `just`; [operator guidance](../docs/exploitation/backup-and-restore.md)
+describes ownership, paths, credentials and limits.

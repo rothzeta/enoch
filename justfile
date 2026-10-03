@@ -37,10 +37,40 @@ build:
 test:
     ./bin/enoch-tool dotnet test Enoch.sln --no-restore
     ./bin/enoch-tool npm --prefix src/Enoch.Ui test
+    ./bin/enoch-operations test
 
 # Run all required checks; dependencies must already be restored.
 check: format-check build
     ./bin/enoch-tool npm --prefix src/Enoch.Ui run lint
     ./bin/enoch-tool dotnet test Enoch.sln --no-build --no-restore
     ./bin/enoch-tool npm --prefix src/Enoch.Ui test
+    ./bin/enoch-operations test
     git diff --check
+
+# Back up stopped storage; supply --quiesced only after every writer is stopped.
+backup data_root backup_directory confirmation='':
+    ./bin/enoch-operations backup {{quote(data_root)}} {{quote(backup_directory)}} {{quote(confirmation)}}
+
+# Verify a backup and restore it into a destination that does not yet exist.
+restore backup_directory restored_data_root:
+    ./bin/enoch-operations restore {{quote(backup_directory)}} {{quote(restored_data_root)}}
+
+# Exercise backup/restore integrity and rejection behavior.
+operations-test:
+    ./bin/enoch-operations test
+
+# Build and exercise an isolated local production-image API and restored storage.
+operations-check:
+    ./bin/enoch-operations check
+
+# Leave the verified local image running on a loopback-only Docker port.
+local-launch:
+    ./bin/enoch-operations launch
+
+# Stop the exact local container while retaining its disposable data volume.
+local-stop container_name:
+    ./bin/enoch-operations stop {{quote(container_name)}}
+
+# Verify compiled CLI publication families against the last checked local app.
+cli-docker-check:
+    ./bin/enoch-operations cli-check

@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { api, artifactDownloadUrl, type Run, type RunDetail } from './api'
+import { api, artifactDownloadUrl, evidenceDownloadUrl, type Run, type RunDetail } from './api'
 
-const runs = ref<Run[]>([])
+const runs = ref<readonly Run[]>([])
 const selected = ref<RunDetail | null>(null)
 const error = ref('')
-const loading = ref(false)
-const routeId = ref(location.pathname.match(/^\/runs\/([^/]+)/)?.[1] ?? '')
+const loading = ref(true)
+const routeId = ref('')
 let timer: ReturnType<typeof setInterval> | undefined
+let activeRequest: AbortController | undefined
+let requestVersion = 0
+let unmounted = false
 
-const normalize = (value: Run[] | { items: Run[] }) => (Array.isArray(value) ? value : value.items)
 const detail = computed(() => selected.value)
 const tab = ref('overview')
+const sections = ['overview', 'plan', 'progress', 'evidence', 'artifacts', 'result'] as const
+const files = computed(() =>
+  tab.value === 'evidence' ? detail.value?.evidence : detail.value?.artifacts,
+)
 const dataForTab = computed(() => {
   const d = detail.value
   if (!d) return null
@@ -24,31 +30,55 @@ const dataForTab = computed(() => {
 })
 
 async function refresh() {
+  activeRequest?.abort()
+  const controller = new AbortController()
+  activeRequest = controller
+  const version = ++requestVersion
+  const id = routeId.value
+  const current = () => !unmounted && version === requestVersion && id === routeId.value
+  loading.value = true
+  error.value = ''
   try {
-    error.value = ''
-    runs.value = normalize(await api.listRuns())
-    if (routeId.value) {
-      const raw = await api.getRun(routeId.value)
-      // The API returns a RunDocument with its lifecycle data under `manifest`.
-      // Flatten that envelope for the view while retaining the full collections.
-      const envelope = raw as RunDetail & { manifest?: Run }
-      selected.value = envelope.manifest ? { ...envelope.manifest, ...envelope } : envelope
-    }
+    const [nextRuns, nextSelected] = await Promise.all([
+      api.listRuns(controller.signal),
+      id ? api.getRun(id, controller.signal) : Promise.resolve(null),
+    ])
+    if (!current()) return
+    runs.value = nextRuns
+    selected.value = nextSelected
   } catch (e) {
+    if (!current()) return
     error.value = e instanceof Error ? e.message : 'Unable to load runs'
+  } finally {
+    if (current()) loading.value = false
+  }
+}
+function followLocation() {
+  const encoded = location.pathname.match(/^\/runs\/([^/]+)\/?$/)?.[1]
+  try {
+    const id = encoded ? decodeURIComponent(encoded) : ''
+    if (id !== routeId.value) {
+      routeId.value = id
+      selected.value = null
+      tab.value = 'overview'
+    }
+    void refresh()
+  } catch {
+    activeRequest?.abort()
+    requestVersion++
+    selected.value = null
+    routeId.value = ''
+    loading.value = false
+    error.value = 'Invalid run address'
   }
 }
 function openRun(id: string) {
-  routeId.value = id
   history.pushState({}, '', `/runs/${encodeURIComponent(id)}`)
-  tab.value = 'overview'
-  void refresh()
+  followLocation()
 }
 function back() {
-  routeId.value = ''
-  selected.value = null
   history.pushState({}, '', '/')
-  void refresh()
+  followLocation()
 }
 function display(value: unknown): string {
   return value === undefined || value === null
@@ -61,16 +91,19 @@ function label(value: string): string {
   return String(value ?? 'unknown').replaceAll('_', ' ')
 }
 function refreshInBackground(): void {
+  if (loading.value) return
   // refresh catches and exposes failures in the component's error state.
   void refresh()
 }
 onMounted(() => {
-  window.addEventListener('popstate', refreshInBackground)
-  void refresh()
+  window.addEventListener('popstate', followLocation)
+  followLocation()
   timer = setInterval(refreshInBackground, 7000)
 })
 onUnmounted(() => {
-  window.removeEventListener('popstate', refreshInBackground)
+  unmounted = true
+  activeRequest?.abort()
+  window.removeEventListener('popstate', followLocation)
   if (timer) clearInterval(timer)
 })
 </script>
@@ -83,7 +116,8 @@ onUnmounted(() => {
   </header>
   <main class="shell">
     <div v-if="error" class="error" role="alert">{{ error }}</div>
-    <section v-if="!detail" class="list-view">
+    <div v-if="routeId && !detail && loading" class="muted" role="status">Loading run…</div>
+    <section v-if="!routeId" class="list-view">
       <div class="heading">
         <div>
           <p class="eyebrow">RUN INDEX</p>
@@ -91,8 +125,8 @@ onUnmounted(() => {
         </div>
         <span class="count">{{ runs.length }} total</span>
       </div>
-      <div v-if="loading" class="muted">Loading…</div>
-      <div v-else-if="!runs.length" class="empty">No runs have been published yet.</div>
+      <div v-if="loading" class="muted" role="status">Loading…</div>
+      <div v-else-if="!error && !runs.length" class="empty">No runs have been published yet.</div>
       <button
         v-for="run in runs"
         :key="String(run.id)"
@@ -107,39 +141,55 @@ onUnmounted(() => {
           <span :class="['pill', String(run.state || '').toLowerCase()]">{{
             label(run.state || 'unknown')
           }}</span
-          ><time>{{ run.updatedAt || run.createdAt || '' }}</time>
+          ><time :datetime="run.updatedAt || run.createdAt">{{
+            run.updatedAt || run.createdAt || ''
+          }}</time>
         </div>
       </button>
     </section>
-    <section v-else class="detail-view">
+    <section v-else-if="detail" class="detail-view" :aria-busy="loading">
       <button class="back" @click="back">← All runs</button>
       <div class="detail-head">
         <div>
           <p class="eyebrow">RUN / {{ detail.id }}</p>
           <h1>{{ detail.title || detail.id }}</h1>
         </div>
-        <span :class="['pill', String(detail.state || '').toLowerCase()]">{{
-          label(detail.state || 'unknown')
-        }}</span>
+        <div class="run-meta">
+          <span :class="['pill', String(detail.state || '').toLowerCase()]">{{
+            label(detail.state || 'unknown')
+          }}</span>
+          <span v-if="detail.outcome" :class="['pill', detail.outcome.toLowerCase()]">{{
+            label(detail.outcome)
+          }}</span>
+        </div>
       </div>
+      <p v-if="detail.summary" class="run-summary">{{ detail.summary }}</p>
       <nav class="tabs" aria-label="Run sections">
         <button
-          v-for="item in ['overview', 'plan', 'progress', 'evidence', 'artifacts', 'result']"
+          v-for="item in sections"
           :key="item"
           :class="{ active: tab === item }"
+          :aria-pressed="tab === item"
+          aria-controls="run-section"
           @click="tab = item"
         >
           {{ item }}
         </button>
       </nav>
-      <article class="panel">
-        <h2>{{ tab }}</h2>
-        <template v-if="tab === 'artifacts'"
-          ><div v-if="detail.artifacts?.length" class="artifact-list">
-            <section v-for="artifact in detail.artifacts" :key="artifact.id" class="artifact-card">
+      <article id="run-section" class="panel" aria-labelledby="run-section-title">
+        <h2 id="run-section-title">{{ tab }}</h2>
+        <template v-if="tab === 'artifacts' || tab === 'evidence'"
+          ><div v-if="files?.length" class="artifact-list">
+            <section v-for="artifact in files" :key="artifact.id" class="artifact-card">
               <div class="artifact-head">
                 <strong>{{ artifact.name }}</strong
-                ><a :href="artifactDownloadUrl(detail.id, artifact.id)" :download="artifact.name"
+                ><a
+                  :href="
+                    tab === 'evidence'
+                      ? evidenceDownloadUrl(detail.id, artifact.id)
+                      : artifactDownloadUrl(detail.id, artifact.id)
+                  "
+                  :download="artifact.name"
                   >Download</a
                 >
               </div>
@@ -159,7 +209,7 @@ onUnmounted(() => {
               </dl>
             </section>
           </div>
-          <p v-else class="muted">No artifacts published.</p></template
+          <p v-else class="muted">No {{ tab }} published.</p></template
         ><template v-else>
           <pre v-if="dataForTab !== null && dataForTab !== undefined">{{
             display(dataForTab)

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+operation="${1:-}"
+if [[ $# -gt 0 ]]; then shift; fi
+case "$operation" in
+  backup|restore) exec ./bin/enoch-tool node scripts/run-backup.mjs "$operation" "$@" ;;
+  test) exec ./bin/enoch-tool node --test scripts/backup.test.mjs ;;
+  check) exec ./scripts/run-operations-check.sh "$@" ;;
+  cli-check) exec ./scripts/check-cli-docker.sh "$@" ;;
+  launch|stop) exec ./scripts/run-local-docker.sh "$operation" "$@" ;;
+  *) echo 'Usage: bin/enoch-operations backup|restore|test|check [arguments...]' >&2; exit 2 ;;
+esac

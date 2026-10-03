@@ -13,7 +13,7 @@ public sealed record StartRunRequest(string Title, object Request, string? RunId
 public sealed record PlanRequest(object Plan, string? EventId = null);
 public sealed record EventRequest(string EventId, string Kind, object? Data = null, long? ExpectedSequence = null, DateTimeOffset? OccurredAt = null);
 public sealed record ResultRequest(object Result);
-public sealed record FinishRequest(RunOutcome Outcome, string? Summary = null);
+public sealed record FinishRequest(RunOutcome? Outcome, string? Summary = null);
 public sealed record EvidenceRequest(string Name, string Content, string? MimeType = "text/plain");
 public sealed record PublicationResponse(string RunId, long Sequence, RunState State);
 public sealed record RunManifest(string Id, string Title, RunState State, RunOutcome? Outcome, long Sequence, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, DateTimeOffset? FinishedAt, string? Summary = null);

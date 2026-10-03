@@ -5,3 +5,6 @@ This directory contains tracked executable entry points. `enoch-tool` delegates 
 
 Generated .NET output belongs in each project's ignored `bin/` directory. It must
 not be placed in this repository-root directory.
+
+`enoch-operations` delegates backup, restore, operational tests and local Docker
+launch/stop to `scripts/`; its supported operations are exposed through `just`.
