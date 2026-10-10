@@ -2,6 +2,42 @@
 
 Record dated work, evidence, and limitations here. Plans and standalone tasks follow [ADR-0002](adr/0002-plan-filenames.md) and [ADR-0003](adr/0003-implementation-plan-writing.md); this note records their actual execution.
 
+## 2026-10-10 Renovate and GitHub controls
+
+The Renovate installation opened onboarding PR
+[#1](https://github.com/rothzeta/enoch/pull/1) on `renovate/configure`; it failed
+only because the generated `renovate.json` did not satisfy Prettier. Inspected
+GitHub settings confirmed `main` was the default branch, neither branch was
+protected, and auto-merge, merged-branch deletion, and vulnerability alerts were
+disabled. There was no `master` branch.
+
+Configured normal updates for Monday 00:00–06:00 UTC, a three-day upstream release
+cooldown with timestamps required, and squash automerge for passing patch/minor
+PRs. Major/other updates remain manual PRs. Security fixes use the lowest patched
+version and bypass schedule/cooldown while retaining the update-type merge
+policy. Renovate manages merges itself so GitHub's native auto-merge cannot skip
+its internal cooldown. Enabled digest pinning, a dependency dashboard through
+`config:recommended`, and bounded normal PR concurrency. Added README badges and
+`just renovate-check` using official validator `44.149.2` in separate Node 24
+Docker tooling.
+
+Applied and read back GitHub branch protection: up-to-date PRs; mandatory `check`
+and `build` checks bound to GitHub Actions app `15368`; resolved conversations;
+administrator enforcement; force pushes and deletion disabled. Required review
+count is zero for the solo maintainer/bot. Enabled repository auto-merge, deletion
+of merged branches, and vulnerability alerts. Dependabot automatic security PRs
+remain disabled to avoid duplicate updates.
+
+Executed `ENOCH_TOOLING=docker just install`, `ENOCH_TOOLING=docker just format`,
+and `ENOCH_TOOLING=docker just check`: passed formatting, analyzers, Vue types,
+production builds, 125 backend tests, 21 client/CLI tests, 17 UI tests and 11
+operations tests. `just renovate-check` passed strict official configuration
+validation. GitHub CLI works with network access outside the restricted sandbox.
+An npm audit found transitive `source-map-js` 1.2.1 affected by
+[GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q), fixed in
+1.2.2; a separate security patch follows this onboarding change. Hosted checks of
+the updated onboarding commit and its merge are recorded after completion below.
+
 ## 2026-10-03 Review council
 
 Scope: complete repository evaluation of correctness, code quality, application behavior, features, tests, and deployment configuration at `cc2ef10`.

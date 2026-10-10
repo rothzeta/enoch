@@ -100,6 +100,25 @@ Docker inspection now reports the final container as `exited`. Its data volume,
 credentials and the previously stopped container remain preserved.
 See the task log for image identity, detailed evidence and stop command.
 
+## Dependency maintenance and GitHub controls
+
+As of 2026-10-10, `renovate.json` configures weekly normal updates on Mondays
+00:00–06:00 UTC and a three-day upstream release cooldown. Passing patch/minor
+PRs use Renovate-managed squash automerge; major and other updates stay manual.
+Security alerts bypass the schedule/cooldown and retain the same update-type
+merge policy. Releases without timestamps cannot pass the cooldown. Actions and
+Docker digest pinning are enabled. `just renovate-check` uses the pinned official
+validator in a separate Node 24 Docker environment. README badges link CI,
+version tags, and the dependency dashboard.
+
+GitHub `main` protection now requires up-to-date PRs, successful `check` and
+`build` jobs from GitHub Actions, and resolved conversations; force pushes and
+deletion are disabled, including for administrators. The mandatory review count
+is zero to support the solo maintainer and bot. Repository auto-merge and deletion
+of merged branches are enabled. Dependabot vulnerability alerts are enabled;
+Dependabot automatic security PRs remain disabled because Renovate owns updates.
+See the [maintenance task log](TASK_LOGS.md#2026-10-10-renovate-and-github-controls).
+
 ## Unresolved review findings
 
 All 21 application review defects ENOCH-001 through ENOCH-021 are resolved,

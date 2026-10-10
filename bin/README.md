@@ -8,3 +8,6 @@ not be placed in this repository-root directory.
 
 `enoch-operations` delegates backup, restore, operational tests and local Docker
 launch/stop to `scripts/`; its supported operations are exposed through `just`.
+
+`enoch-renovate-check` delegates configuration validation to
+`scripts/check-renovate.sh` through `just renovate-check`.
