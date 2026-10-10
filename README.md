@@ -1,5 +1,9 @@
 # Enoch
 
+[![CI](https://github.com/rothzeta/enoch/actions/workflows/container.yml/badge.svg?branch=main)](https://github.com/rothzeta/enoch/actions/workflows/container.yml)
+[![Latest release](https://img.shields.io/github/v/release/rothzeta/enoch)](https://github.com/rothzeta/enoch/releases/latest)
+[![Renovate](https://img.shields.io/badge/dependencies-Renovate-blue)](https://github.com/rothzeta/enoch/issues?q=is%3Aissue%20is%3Aopen%20%22Dependency%20Dashboard%22)
+
 Enoch publishes durable, human-readable records of agent work. A run captures the request, plan revisions, semantic progress events, evidence, artifacts, result, and terminal outcome. It is deliberately a publication system rather than an agent runtime or transcript store.
 
 V1 is one ASP.NET Core application serving a Vue 3 static UI and a versioned HTTP API. The canonical store is a filesystem bundle below `${ENOCH_DATA}/runs/<run-id>`; no database, broker, or cache is required.
@@ -29,6 +33,35 @@ ENOCH_DATA="$PWD/data" ENOCH_TOKEN='development-only-token' \
 ```
 
 The production container builds the Vue application into the API's `wwwroot`, so `/` and `/runs/<id>` serve the browser view. The API exposes `/health` for orchestration checks.
+
+## Dependency updates and branches
+
+Renovate creates normal update branches weekly, on Mondays between 00:00 and
+06:00 UTC. Patch and minor updates merge automatically only after all checks pass
+and the dependency release is at least three days old. The cooldown starts at the
+upstream release date, not the PR creation date. Updates without a release
+timestamp stay pending. Major upgrades and other update types remain PRs for
+manual review. Security fixes bypass the weekly schedule and cooldown; patch and
+minor security fixes still require passing checks, and major security upgrades
+still need manual review. Existing PRs can be rebased and merged outside the weekly
+creation window. Validate configuration changes with `just renovate-check`
+(Docker required; the pinned validator uses Node 24 separately from the app).
+
+GitHub's dependency graph and Dependabot alerts supply security advisories to
+Renovate. Renovate owns dependency update PRs; enabling alerts does not require
+enabling a second bot's automatic security PRs. GitHub Actions and container images
+are pinned by digest through Renovate PRs.
+
+`main` is the default integration branch. Feature and Renovate branches are
+temporary PR branches and are deleted after merging. GitHub protection requires
+an up-to-date PR with successful `check` and container `build` jobs, resolved
+conversations, and no force pushes or branch deletion. These rules include
+administrators. No mandatory approval count is set, so a solo maintainer and
+Renovate can merge passing PRs; major upgrades remain a manual merge decision.
+
+Badges are linked Markdown images at the top of this file. The CI badge reports
+the workflow on `main`, the release badge links to the latest GitHub release, and
+the Renovate badge links to the Dependency Dashboard.
 
 ## CLI-first publication
 

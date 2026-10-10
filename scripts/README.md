@@ -9,6 +9,10 @@ the repository root, and never contain credentials.
 The Docker mode writes build output as the invoking user and keeps dependency
 caches under the ignored `.cache/tooling/` directory.
 
+`check-renovate.sh` runs the pinned official Renovate configuration validator in
+a separate Node 24 Docker image through `just renovate-check`. Its npm cache is
+ignored under `.cache/renovate/`; it mounts repository source read-only.
+
 `run-backup.mjs` implements verified quiesced backup/restore; `backup.test.mjs`
 retains integrity and rejected-input regressions. `run-operations-check.sh` and
 `check-operations.mjs` exercise an isolated Docker image and restored API fixture.

@@ -47,6 +47,10 @@ check: format-check build
     ./bin/enoch-operations test
     git diff --check
 
+# Validate Renovate configuration with its pinned official validator (Docker required).
+renovate-check:
+    ./bin/enoch-renovate-check
+
 # Back up stopped storage; supply --quiesced only after every writer is stopped.
 backup data_root backup_directory confirmation='':
     ./bin/enoch-operations backup {{quote(data_root)}} {{quote(backup_directory)}} {{quote(confirmation)}}
