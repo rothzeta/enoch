@@ -117,6 +117,9 @@ deletion are disabled, including for administrators. The mandatory review count
 is zero to support the solo maintainer and bot. Repository auto-merge and deletion
 of merged branches are enabled. Dependabot vulnerability alerts are enabled;
 Dependabot automatic security PRs remain disabled because Renovate owns updates.
+The UI lockfile now selects `source-map-js` 1.2.2 to resolve
+GHSA-68fv-2mgg-jv7q; dependency restoration reports zero npm vulnerabilities, and
+the complete local repository check still passes all 174 tests.
 See the [maintenance task log](TASK_LOGS.md#2026-10-10-renovate-and-github-controls).
 
 ## Unresolved review findings
