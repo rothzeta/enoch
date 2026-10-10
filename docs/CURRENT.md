@@ -109,7 +109,7 @@ Security alerts bypass the schedule/cooldown and retain the same update-type
 merge policy. Releases without timestamps cannot pass the cooldown. Actions and
 Docker digest pinning are enabled. `just renovate-check` uses the pinned official
 validator in a separate Node 24 Docker environment. README badges link CI,
-releases, and the dependency dashboard.
+version tags, and the dependency dashboard.
 
 GitHub `main` protection now requires up-to-date PRs, successful `check` and
 `build` jobs from GitHub Actions, and resolved conversations; force pushes and

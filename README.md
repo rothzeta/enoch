@@ -1,7 +1,7 @@
 # Enoch
 
 [![CI](https://github.com/rothzeta/enoch/actions/workflows/container.yml/badge.svg?branch=main)](https://github.com/rothzeta/enoch/actions/workflows/container.yml)
-[![Latest release](https://img.shields.io/github/v/release/rothzeta/enoch)](https://github.com/rothzeta/enoch/releases/latest)
+[![Latest tag](https://img.shields.io/github/v/tag/rothzeta/enoch)](https://github.com/rothzeta/enoch/tags)
 [![Renovate](https://img.shields.io/badge/dependencies-Renovate-blue)](https://github.com/rothzeta/enoch/issues?q=is%3Aissue%20is%3Aopen%20%22Dependency%20Dashboard%22)
 
 Enoch publishes durable, human-readable records of agent work. A run captures the request, plan revisions, semantic progress events, evidence, artifacts, result, and terminal outcome. It is deliberately a publication system rather than an agent runtime or transcript store.
@@ -60,7 +60,7 @@ administrators. No mandatory approval count is set, so a solo maintainer and
 Renovate can merge passing PRs; major upgrades remain a manual merge decision.
 
 Badges are linked Markdown images at the top of this file. The CI badge reports
-the workflow on `main`, the release badge links to the latest GitHub release, and
+the workflow on `main`, the tag badge links to version tags, and
 the Renovate badge links to the Dependency Dashboard.
 
 ## CLI-first publication
